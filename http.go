@@ -38,6 +38,10 @@ func (h *HttpUtil) Error() error {
 	return h.err
 }
 
+func (h *HttpUtil) Response() *http.Response {
+	return h.resp
+}
+
 func (h *HttpUtil) Get(url string, params url.Values) *HttpUtil {
 	if h.err != nil {
 		return h
