@@ -1,6 +1,7 @@
-package main
+package simple_http
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -33,19 +34,28 @@ func (h *HttpUtil) initClient() {
 	}
 }
 
-func (h *HttpUtil) Get(_url string, params url.Values) *HttpUtil {
+func (h *HttpUtil) Get(url string, params url.Values) *HttpUtil {
 	if h.err != nil {
 		return h
 	}
-	u, err := url.Parse(_url)
+	url, h.err = BuildUrl(url, params)
+	if h.err != nil {
+		return h
+	}
+	h.req, h.err = http.NewRequest(http.MethodGet, url, nil)
+	return h
+}
+
+func (h *HttpUtil) Post(url string, params interface{}) *HttpUtil {
+	if h.err != nil {
+		return h
+	}
+	b, err := json.Marshal(params)
 	if err != nil {
 		h.err = err
 		return h
 	}
-	if params != nil && len(params) > 0 {
-		u.RawQuery = params.Encode()
-	}
-	h.req, h.err = http.NewRequest(http.MethodGet, u.String(), nil)
+	h.req, h.err = http.NewRequest(http.MethodPost, url, bytes.NewBuffer(b))
 	return h
 }
 
@@ -61,36 +71,35 @@ func (h *HttpUtil) Do() *HttpUtil {
 	return h
 }
 
-func (h *HttpUtil) ResultContent() (string, error) {
-	if h.err != nil {
-		return "", h.err
-	}
+func (h *HttpUtil) Result() ([]byte, error) {
 	if !h.do {
 		h.Do()
 	}
-	defer func() {
-		h.err = h.resp.Body.Close()
-	}()
-	b, err := ioutil.ReadAll(h.resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(b), err
-}
-
-func (h *HttpUtil) ResultMap() (map[string]interface{}, error) {
 	if h.err != nil {
 		return nil, h.err
 	}
-	if !h.do {
-		h.Do()
-	}
 	defer func() {
-		h.err = h.resp.Body.Close()
+		_ = h.resp.Body.Close()
 	}()
 	b, err := ioutil.ReadAll(h.resp.Body)
 	if err != nil {
 		return nil, err
+	}
+	return b, nil
+}
+
+func (h *HttpUtil) RContent() (string, error) {
+	b, err := h.Result()
+	if err != nil {
+		return "", h.err
+	}
+	return string(b), err
+}
+
+func (h *HttpUtil) RMap() (map[string]interface{}, error) {
+	b, err := h.Result()
+	if err != nil {
+		return nil, h.err
 	}
 	var r map[string]interface{}
 	err = json.Unmarshal(b, &r)
@@ -100,12 +109,29 @@ func (h *HttpUtil) ResultMap() (map[string]interface{}, error) {
 	return r, err
 }
 
+func (h *HttpUtil) RMarshal(r interface{}) error {
+	b, err := h.Result()
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &r)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (h *HttpUtil) SetHeader(header http.Header) *HttpUtil {
 	h.req.Header = header
 	return h
 }
 
-func (h *HttpUtil) SetClient(client *http.Client) *HttpUtil {
-	h.client = client
+func (h *HttpUtil) CustomClient(custom func(client *http.Client)) *HttpUtil {
+	custom(h.client)
+	return h
+}
+
+func (h *HttpUtil) CustomRequest(custom func(request *http.Request)) *HttpUtil {
+	custom(h.req)
 	return h
 }
