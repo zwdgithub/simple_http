@@ -28,7 +28,7 @@ func NewHttpUtil() *HttpUtil {
 	}
 }
 
-func (h *HttpUtil) initClient() {
+func (h *HttpUtil) defaultClient() {
 	h.client = &http.Client{
 		Timeout: defaultTimeout,
 	}
@@ -72,7 +72,7 @@ func (h *HttpUtil) Do() *HttpUtil {
 		return h
 	}
 	if h.client == nil {
-		h.initClient()
+		h.defaultClient()
 	}
 	h.resp, h.err = h.client.Do(h.req)
 	h.do = true
