@@ -34,6 +34,10 @@ func (h *HttpUtil) initClient() {
 	}
 }
 
+func (h *HttpUtil) Error() error {
+	return h.err
+}
+
 func (h *HttpUtil) Get(url string, params url.Values) *HttpUtil {
 	if h.err != nil {
 		return h
