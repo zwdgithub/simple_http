@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -95,5 +96,16 @@ func TestResponseMarshalMap(t *testing.T) {
 	h := NewHttpUtil()
 	r, err := h.Get("http://apis.juhe.cn/ip/ipNew?ip=112.112.11.11&key=").RMap()
 	t.Log(r)
+	t.Log(err)
+}
+
+func TestForm(t *testing.T) {
+	h := NewHttpUtil()
+	p := url.Values{}
+	p.Set("word", "是")
+	p.Set("key", "b641bfe5999d9d6e4523bb03945041a2")
+	p.Set("dtype", "json")
+	content, err := h.PostForm("http://v.juhe.cn/xhzd/query", p).Do().RContent()
+	t.Log(content)
 	t.Log(err)
 }

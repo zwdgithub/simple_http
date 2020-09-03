@@ -3,9 +3,11 @@ package simple_http
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -60,7 +62,26 @@ func (h *HttpUtil) Get(url string, params ...url.Values) *HttpUtil {
 }
 
 // 构建 post request
-func (h *HttpUtil) Post(url string, params interface{}) *HttpUtil {
+func (h *HttpUtil) Post(url string, reader io.Reader) *HttpUtil {
+	if h.err != nil {
+		return h
+	}
+	h.req, h.err = http.NewRequest(http.MethodPost, url, reader)
+	return h
+}
+
+// post form
+func (h *HttpUtil) PostForm(url string, params url.Values) *HttpUtil {
+	if h.err != nil {
+		return h
+	}
+	h.Post(url, strings.NewReader(params.Encode()))
+	h.req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	return h
+}
+
+// post json
+func (h *HttpUtil) PostJson(url string, params interface{}) *HttpUtil {
 	if h.err != nil {
 		return h
 	}
@@ -69,26 +90,9 @@ func (h *HttpUtil) Post(url string, params interface{}) *HttpUtil {
 		h.err = err
 		return h
 	}
-	h.req, h.err = http.NewRequest(http.MethodPost, url, bytes.NewBuffer(b))
-	return h
-}
-
-// post form
-func (h *HttpUtil) PostForm(url string, params interface{}) *HttpUtil {
-	if h.err != nil {
-		return h
-	}
-	h.Post(url, params)
-	h.req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-}
-
-// post json
-func (h *HttpUtil) PostJson(url string, params interface{}) *HttpUtil {
-	if h.err != nil {
-		return h
-	}
-	h.Post(url, params)
+	h.Post(url, bytes.NewReader(b))
 	h.req.Header.Add("Content-Type", "application/json")
+	return h
 }
 
 // 执行 http 请求
