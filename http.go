@@ -34,14 +34,17 @@ func (h *HttpUtil) defaultClient() {
 	}
 }
 
+// error
 func (h *HttpUtil) Error() error {
 	return h.err
 }
 
+// 获取 response
 func (h *HttpUtil) Response() *http.Response {
 	return h.resp
 }
 
+// 构建 get request
 func (h *HttpUtil) Get(url string, params url.Values) *HttpUtil {
 	if h.err != nil {
 		return h
@@ -54,6 +57,7 @@ func (h *HttpUtil) Get(url string, params url.Values) *HttpUtil {
 	return h
 }
 
+// 构建 post request
 func (h *HttpUtil) Post(url string, params interface{}) *HttpUtil {
 	if h.err != nil {
 		return h
@@ -67,6 +71,7 @@ func (h *HttpUtil) Post(url string, params interface{}) *HttpUtil {
 	return h
 }
 
+// 执行 http 请求
 func (h *HttpUtil) Do() *HttpUtil {
 	if h.err != nil {
 		return h
@@ -79,6 +84,7 @@ func (h *HttpUtil) Do() *HttpUtil {
 	return h
 }
 
+// 获取 response []byte
 func (h *HttpUtil) Result() ([]byte, error) {
 	if !h.do {
 		h.Do()
@@ -96,6 +102,7 @@ func (h *HttpUtil) Result() ([]byte, error) {
 	return b, nil
 }
 
+// 获取 response string
 func (h *HttpUtil) RContent() (string, error) {
 	b, err := h.Result()
 	if err != nil {
@@ -104,6 +111,7 @@ func (h *HttpUtil) RContent() (string, error) {
 	return string(b), err
 }
 
+// 获取 response 转 map[string]interface
 func (h *HttpUtil) RMap() (map[string]interface{}, error) {
 	b, err := h.Result()
 	if err != nil {
@@ -117,6 +125,7 @@ func (h *HttpUtil) RMap() (map[string]interface{}, error) {
 	return r, err
 }
 
+// 获取 response , 并把值 marshal到r 中
 func (h *HttpUtil) RMarshal(r interface{}) error {
 	b, err := h.Result()
 	if err != nil {
@@ -129,17 +138,20 @@ func (h *HttpUtil) RMarshal(r interface{}) error {
 	return nil
 }
 
+// set request header
 func (h *HttpUtil) SetHeader(header http.Header) *HttpUtil {
 	h.req.Header = header
 	return h
 }
 
-func (h *HttpUtil) CustomClient(custom func(client *http.Client)) *HttpUtil {
-	custom(h.client)
+// 自定义 http client 属性
+func (h *HttpUtil) CustomClient(custom func(client *http.Client) *http.Client) *HttpUtil {
+	h.client = custom(h.client)
 	return h
 }
 
-func (h *HttpUtil) CustomRequest(custom func(request *http.Request)) *HttpUtil {
-	custom(h.req)
+// 自定义 request 属性
+func (h *HttpUtil) CustomRequest(custom func(request *http.Request) *http.Request) *HttpUtil {
+	h.req = custom(h.req)
 	return h
 }
