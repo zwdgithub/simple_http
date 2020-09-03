@@ -45,13 +45,15 @@ func (h *HttpUtil) Response() *http.Response {
 }
 
 // 构建 get request
-func (h *HttpUtil) Get(url string, params url.Values) *HttpUtil {
+func (h *HttpUtil) Get(url string, params ...url.Values) *HttpUtil {
 	if h.err != nil {
 		return h
 	}
-	url, h.err = BuildUrl(url, params)
-	if h.err != nil {
-		return h
+	if len(params) > 0 {
+		url, h.err = BuildUrl(url, params[0])
+		if h.err != nil {
+			return h
+		}
 	}
 	h.req, h.err = http.NewRequest(http.MethodGet, url, nil)
 	return h
@@ -126,7 +128,7 @@ func (h *HttpUtil) RMap() (map[string]interface{}, error) {
 }
 
 // 获取 response , 并把值 marshal到r 中
-func (h *HttpUtil) RMarshal(r interface{}) error {
+func (h *HttpUtil) RUnmarshal(r interface{}) error {
 	b, err := h.Result()
 	if err != nil {
 		return err
