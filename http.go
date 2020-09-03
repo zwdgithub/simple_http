@@ -73,6 +73,24 @@ func (h *HttpUtil) Post(url string, params interface{}) *HttpUtil {
 	return h
 }
 
+// post form
+func (h *HttpUtil) PostForm(url string, params interface{}) *HttpUtil {
+	if h.err != nil {
+		return h
+	}
+	h.Post(url, params)
+	h.req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+}
+
+// post json
+func (h *HttpUtil) PostJson(url string, params interface{}) *HttpUtil {
+	if h.err != nil {
+		return h
+	}
+	h.Post(url, params)
+	h.req.Header.Add("Content-Type", "application/json")
+}
+
 // 执行 http 请求
 func (h *HttpUtil) Do() *HttpUtil {
 	if h.err != nil {
@@ -141,8 +159,10 @@ func (h *HttpUtil) RUnmarshal(r interface{}) error {
 }
 
 // set request header
-func (h *HttpUtil) SetHeader(header http.Header) *HttpUtil {
-	h.req.Header = header
+func (h *HttpUtil) SetHeader(header map[string]string) *HttpUtil {
+	for k, v := range header {
+		h.req.Header.Add(k, v)
+	}
 	return h
 }
 
