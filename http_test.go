@@ -109,3 +109,11 @@ func TestForm(t *testing.T) {
 	t.Log(content)
 	t.Log(err)
 }
+
+func TestFmt(t *testing.T) {
+	i := 3
+	t.Log(fmt.Sprintf("%b", i))
+	i = i << 1
+	t.Log(fmt.Sprintf("%b", i))
+
+}

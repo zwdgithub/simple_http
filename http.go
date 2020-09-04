@@ -14,7 +14,7 @@ import (
 // 默认超时时间
 const defaultTimeout = time.Second * 15
 
-type HttpUtil struct {
+type httpUtil struct {
 	req    *http.Request
 	resp   *http.Response
 	client *http.Client
@@ -22,32 +22,32 @@ type HttpUtil struct {
 	err    error
 }
 
-func NewHttpUtil() *HttpUtil {
-	return &HttpUtil{
+func NewHttpUtil() *httpUtil {
+	return &httpUtil{
 		client: &http.Client{
 			Timeout: defaultTimeout,
 		},
 	}
 }
 
-func (h *HttpUtil) defaultClient() {
+func (h *httpUtil) defaultClient() {
 	h.client = &http.Client{
 		Timeout: defaultTimeout,
 	}
 }
 
 // error
-func (h *HttpUtil) Error() error {
+func (h *httpUtil) Error() error {
 	return h.err
 }
 
 // 获取 response
-func (h *HttpUtil) Response() *http.Response {
+func (h *httpUtil) Response() *http.Response {
 	return h.resp
 }
 
 // 构建 get request
-func (h *HttpUtil) Get(url string, params ...url.Values) *HttpUtil {
+func (h *httpUtil) Get(url string, params ...url.Values) *httpUtil {
 	if h.err != nil {
 		return h
 	}
@@ -62,7 +62,7 @@ func (h *HttpUtil) Get(url string, params ...url.Values) *HttpUtil {
 }
 
 // 构建 post request
-func (h *HttpUtil) Post(url string, reader io.Reader) *HttpUtil {
+func (h *httpUtil) Post(url string, reader io.Reader) *httpUtil {
 	if h.err != nil {
 		return h
 	}
@@ -71,7 +71,7 @@ func (h *HttpUtil) Post(url string, reader io.Reader) *HttpUtil {
 }
 
 // post form
-func (h *HttpUtil) PostForm(url string, params url.Values) *HttpUtil {
+func (h *httpUtil) PostForm(url string, params url.Values) *httpUtil {
 	if h.err != nil {
 		return h
 	}
@@ -81,7 +81,7 @@ func (h *HttpUtil) PostForm(url string, params url.Values) *HttpUtil {
 }
 
 // post json
-func (h *HttpUtil) PostJson(url string, params interface{}) *HttpUtil {
+func (h *httpUtil) PostJson(url string, params interface{}) *httpUtil {
 	if h.err != nil {
 		return h
 	}
@@ -95,8 +95,10 @@ func (h *HttpUtil) PostJson(url string, params interface{}) *HttpUtil {
 	return h
 }
 
+//TODO retry
+
 // 执行 http 请求
-func (h *HttpUtil) Do() *HttpUtil {
+func (h *httpUtil) Do() *httpUtil {
 	if h.err != nil {
 		return h
 	}
@@ -109,7 +111,7 @@ func (h *HttpUtil) Do() *HttpUtil {
 }
 
 // 获取 response []byte
-func (h *HttpUtil) Result() ([]byte, error) {
+func (h *httpUtil) Result() ([]byte, error) {
 	if !h.do {
 		h.Do()
 	}
@@ -127,7 +129,7 @@ func (h *HttpUtil) Result() ([]byte, error) {
 }
 
 // 获取 response string
-func (h *HttpUtil) RContent() (string, error) {
+func (h *httpUtil) RContent() (string, error) {
 	b, err := h.Result()
 	if err != nil {
 		return "", h.err
@@ -136,7 +138,7 @@ func (h *HttpUtil) RContent() (string, error) {
 }
 
 // 获取 response 转 map[string]interface
-func (h *HttpUtil) RMap() (map[string]interface{}, error) {
+func (h *httpUtil) RMap() (map[string]interface{}, error) {
 	b, err := h.Result()
 	if err != nil {
 		return nil, h.err
@@ -150,7 +152,7 @@ func (h *HttpUtil) RMap() (map[string]interface{}, error) {
 }
 
 // 获取 response , 并把值 marshal到r 中
-func (h *HttpUtil) RUnmarshal(r interface{}) error {
+func (h *httpUtil) RUnmarshal(r interface{}) error {
 	b, err := h.Result()
 	if err != nil {
 		return err
@@ -163,7 +165,7 @@ func (h *HttpUtil) RUnmarshal(r interface{}) error {
 }
 
 // set request header
-func (h *HttpUtil) SetHeader(header map[string]string) *HttpUtil {
+func (h *httpUtil) SetHeader(header map[string]string) *httpUtil {
 	for k, v := range header {
 		h.req.Header.Add(k, v)
 	}
@@ -171,13 +173,13 @@ func (h *HttpUtil) SetHeader(header map[string]string) *HttpUtil {
 }
 
 // 自定义 http client 属性
-func (h *HttpUtil) CustomClient(custom func(client *http.Client) *http.Client) *HttpUtil {
+func (h *httpUtil) CustomClient(custom func(client *http.Client) *http.Client) *httpUtil {
 	h.client = custom(h.client)
 	return h
 }
 
 // 自定义 request 属性
-func (h *HttpUtil) CustomRequest(custom func(request *http.Request) *http.Request) *HttpUtil {
+func (h *httpUtil) CustomRequest(custom func(request *http.Request) *http.Request) *httpUtil {
 	h.req = custom(h.req)
 	return h
 }
